@@ -2,7 +2,6 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 
 local EVENT_FOLDER = ServerScriptService.Services:WaitForChild("Events")
-local Arena = workspace:WaitForChild("Arena")
 
 local remotesFolder = ReplicatedStorage:FindFirstChild("SurvivalRemotes") or Instance.new("Folder")
 remotesFolder.Name = "SurvivalRemotes"
@@ -13,6 +12,8 @@ eventRemote.Name = "Event"
 eventRemote.Parent = remotesFolder
 
 local events = {}
+local rng = Random.new()
+
 for _, module in EVENT_FOLDER:GetChildren() do
     if module:IsA("ModuleScript") then
         local event = require(module)
@@ -23,10 +24,8 @@ for _, module in EVENT_FOLDER:GetChildren() do
 end
 
 local Shared = {}
-local rng = Random.new()
 
 function Shared.OnStart()
-    -- EventService is driven by RoundService.
 end
 
 function Shared.RunRandomEvent(duration: number?)
@@ -35,23 +34,18 @@ function Shared.RunRandomEvent(duration: number?)
         return nil
     end
 
+    local arena = workspace:WaitForChild("Arena")
     local event = events[rng:NextInteger(1, #events)]
     local eventDuration = duration or rng:NextInteger(8, 14)
 
     eventRemote:FireAllClients("start", event.Name, eventDuration)
 
-    local ok, cleanup = pcall(function()
-        return event.Run(Arena, eventDuration, rng)
+    local ok, errorMessage = pcall(function()
+        event.Run(arena, eventDuration, rng)
     end)
 
     if not ok then
-        warn("EventService failed: " .. tostring(cleanup))
-        eventRemote:FireAllClients("end", event.Name)
-        return nil
-    end
-
-    if type(cleanup) == "function" then
-        cleanup()
+        warn("EventService failed: " .. tostring(errorMessage))
     end
 
     eventRemote:FireAllClients("end", event.Name)
