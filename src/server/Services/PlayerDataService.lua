@@ -34,15 +34,6 @@ function Shared.OnStart()
     for _, player in Players:GetPlayers() do
         Local.CreateProfile(player)
     end
-
-    task.spawn(function()
-        while true do
-            for _, player in Players:GetPlayers() do
-                Store.updateBalance(tostring(player.UserId), "coins", 1)
-            end
-            task.wait(1)
-        end
-    end)
 end
 
 function Local.SetupLeaderstats(player: Player)
@@ -69,7 +60,7 @@ function Local.SetupLeaderstats(player: Player)
 end
 
 function Local.CreateProfile(player: Player)
-    local profile = Local.ProfileStore:LoadProfileAsync(`Player_{player.UserId}`)
+    local profile = Local.ProfileStore:LoadProfileAsync(`Player_${player.UserId}`)
     if not profile then return end
 
     profile:ListenToRelease(function()
